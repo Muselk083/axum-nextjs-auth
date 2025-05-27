@@ -108,8 +108,11 @@ async fn main() {
         user_sessions: DashMap::new(),
     });
 
+    let frontend_url = dotenv::var("FRONTEND_URL")
+        .unwrap_or_else(|_| "http://localhost:3000".to_string());
+
     let cors = CorsLayer::new()
-    .allow_origin("http://localhost:3000".parse::<HeaderValue>().unwrap())
+    .allow_origin(frontend_url.parse::<HeaderValue>().unwrap())
     .allow_methods([Method::GET, Method::POST])
     .allow_headers([
         header::CONTENT_TYPE,
@@ -129,7 +132,13 @@ async fn main() {
         .layer(cors)
         .with_state(app_state); // Pass the Arc'd state to the router
 
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:8080").await.unwrap();
+    // --- MODIFICATION HERE ---
+    let port = dotenv::var("PORT")
+        .unwrap_or_else(|_| "8080".to_string())
+        .parse::<u16>()
+        .expect("PORT must be a valid number");
+    let addr = format!("0.0.0.0:{}", port);
+    let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
     tracing::info!("Server running on http://{}", listener.local_addr().unwrap());
     axum::serve(listener, app).await.unwrap();
 }

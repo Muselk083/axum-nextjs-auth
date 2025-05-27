@@ -2,9 +2,11 @@
 import { useEffect, useState } from "react";
 import { GlowText } from "@/components/ui/GlowText";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 // Define the backend URL using the environment variable
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+const BACKEND_URL =
+  process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080";
 if (!BACKEND_URL) {
   throw new Error("NEXT_PUBLIC_BACKEND_URL is not defined");
 }
@@ -122,12 +124,14 @@ export default function Portfolio() {
       <header className="border-b border-cyan-500 pb-6 mb-8 flex justify-between items-center">
         <div>
           <GlowText as="h1" className="text-4xl mb-2">
-            {user?.name || "User"}'s Cyber Den
+            {user?.name || "User"}
           </GlowText>
           <div className="flex items-center gap-4">
-            <img
+            <Image
               src={user?.avatar || "/default-avatar.png"}
               alt={user?.name || "User avatar"}
+              width={48}
+              height={48}
               className="w-12 h-12 rounded-full border-2 border-cyan-500"
             />
             <span className="text-cyan-300">{user?.email || "No email"}</span>

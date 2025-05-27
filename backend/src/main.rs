@@ -130,11 +130,11 @@ async fn main() {
         .route("/api/user", get(get_current_user))
         .route("/auth/signout", get(sign_out))
         .layer(cors)
-        .with_state(app_state); // Pass the Arc'd state to the router
+        .with_state(app_state);
 
     // --- MODIFICATION HERE ---
     let port = dotenv::var("PORT")
-        .unwrap_or_else(|_| "8080".to_string())
+        .unwrap_or_else(|_| "10000".to_string())
         .parse::<u16>()
         .expect("PORT must be a valid number");
     let addr = format!("0.0.0.0:{}", port);

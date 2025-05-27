@@ -4,6 +4,12 @@ import { GlowText } from "@/components/ui/GlowText";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
+// Define the backend URL using the environment variable
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+if (!BACKEND_URL) {
+  throw new Error("NEXT_PUBLIC_BACKEND_URL is not defined");
+}
+
 interface UserData {
   name: string;
   email: string;
@@ -22,7 +28,7 @@ export default function Portfolio() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await fetch("http://localhost:8080/api/user", {
+        const res = await fetch(`${BACKEND_URL}/api/user`, {
           credentials: "include",
         });
 
@@ -53,7 +59,7 @@ export default function Portfolio() {
 
   const handleSignOut = async () => {
     try {
-      const response = await fetch("http://localhost:8080/auth/signout", {
+      const response = await fetch(`${BACKEND_URL}/auth/signout`, {
         method: "GET",
         credentials: "include",
       });
@@ -71,7 +77,7 @@ export default function Portfolio() {
   const handleGoogleLogin = async () => {
     try {
       // Redirect to backend OAuth endpoint
-      window.location.href = "http://localhost:8080/auth/google";
+      window.location.href = `${BACKEND_URL}/auth/google`;
     } catch (error) {
       console.error("Google login failed:", error);
     }
@@ -117,7 +123,7 @@ export default function Portfolio() {
       <header className="border-b border-cyan-500 pb-6 mb-8 flex justify-between items-center">
         <div>
           <GlowText as="h1" className="text-4xl mb-2">
-            {user?.name || "User"}
+            {user?.name || "User"}'s Cyber Den
           </GlowText>
           <div className="flex items-center gap-4">
             <img

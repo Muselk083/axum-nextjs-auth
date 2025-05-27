@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
 import { GlowText } from "@/components/ui/GlowText";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 // Define the backend URL using the environment variable

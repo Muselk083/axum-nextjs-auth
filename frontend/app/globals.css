@@ -41,6 +41,15 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+
+  /* New: Cyber Colors as CSS Variables */
+  --color-cyber-green: #00ff41;
+  --color-cyber-cyan: #00f5d4;
+  --color-cyber-dark: #0d0208;
+
+  /* New: Glow Shadow as CSS Variable */
+  --shadow-glow: 0 0 10px var(--color-cyber-cyan),
+    0 0 20px var(--color-cyber-cyan);
 }
 
 :root {
@@ -76,6 +85,15 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+
+  /* New: Cyber Colors as CSS Variables (same values for light mode) */
+  --color-cyber-green: #00ff41;
+  --color-cyber-cyan: #00f5d4;
+  --color-cyber-dark: #0d0208;
+
+  /* New: Glow Shadow as CSS Variable (referencing --color-cyber-cyan) */
+  --shadow-glow: 0 0 10px var(--color-cyber-cyan),
+    0 0 20px var(--color-cyber-cyan);
 }
 
 .dark {
@@ -110,6 +128,15 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+
+  /* New: Cyber Colors as CSS Variables (same values for dark mode, or adjust if needed) */
+  --color-cyber-green: #00ff41;
+  --color-cyber-cyan: #00f5d4;
+  --color-cyber-dark: #0d0208;
+
+  /* New: Glow Shadow as CSS Variable (referencing --color-cyber-cyan) */
+  --shadow-glow: 0 0 10px var(--color-cyber-cyan),
+    0 0 20px var(--color-cyber-cyan);
 }
 
 @layer base {
@@ -118,5 +145,31 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+
+  .cyber-button {
+    @apply px-6 py-3 font-mono uppercase tracking-wider;
+    @apply bg-cyan-900/50 text-cyan-400;
+    @apply border border-cyan-400/50;
+    @apply hover:bg-cyan-800/70 hover:text-cyan-300;
+    @apply transition-all duration-300;
+    text-shadow: 0 0 8px rgba(34, 211, 238, 0.6);
+  }
+
+  .cyber-button:hover {
+    box-shadow: 0 0 15px rgba(34, 211, 238, 0.4);
+  }
+
+  .cyber-button-destructive {
+    @apply px-4 py-2 font-mono uppercase tracking-wider text-sm;
+    @apply bg-red-900/50 text-red-400;
+    @apply border border-red-400/50;
+    @apply hover:bg-red-800/70 hover:text-red-300;
+    @apply transition-all duration-300;
+    text-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
+  }
+
+  .cyber-button-destructive:hover {
+    box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
   }
 }

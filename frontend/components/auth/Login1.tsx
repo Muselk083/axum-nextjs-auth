@@ -25,6 +25,15 @@ const Login1 = ({
   signupText = "Don't have an account?",
   signupUrl = "/signup",
 }: Login1Props) => {
+  const handleGoogleLogin = async () => {
+    try {
+      // Redirect to backend OAuth endpoint
+      window.location.href = "http://localhost:8080/auth/google";
+    } catch (error) {
+      console.error("Google login failed:", error);
+    }
+  };
+
   return (
     <section className="h-screen bg-muted">
       <div className="flex h-full items-center justify-center">
@@ -65,7 +74,11 @@ const Login1 = ({
                 <Button type="submit" className="mt-2 w-full">
                   {buttonText}
                 </Button>
-                <Button variant="outline" className="w-full">
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={handleGoogleLogin}
+                >
                   <FcGoogle className="mr-2 size-5" />
                   {googleText}
                 </Button>

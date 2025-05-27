@@ -1,3 +1,4 @@
+"use client";
 import { Login1 } from "@/components/auth/Login1";
 import logo from "@/public/rust-logo.png";
 

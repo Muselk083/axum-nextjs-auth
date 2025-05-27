@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-axum = "0.7.5" 
+axum = {version = "0.7.5", features = ["json"]} 
 axum-extra = { version = "0.9.3", features = ["cookie-private"] } 
 tokio = { version = "1.38.0", features = ["full"] }
 serde = { version = "1.0.203", features = ["derive"] } 

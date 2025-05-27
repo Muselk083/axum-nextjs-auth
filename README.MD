@@ -2,7 +2,7 @@
 
 ![Cyberpunk Theme](https://img.shields.io/badge/theme-cyberpunk-00ff41?style=flat)
 ![Tech Stack](https://img.shields.io/badge/stack-Rust%20Axum%20+%20Next.js-ff006e?style=flat)
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](link-to-build-status)
+<!-- [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](link-to-build-status) -->
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 ---

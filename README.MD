@@ -2,12 +2,15 @@
 
 ![Cyberpunk Theme](https://img.shields.io/badge/theme-cyberpunk-00ff41?style=flat)
 ![Tech Stack](https://img.shields.io/badge/stack-Rust%20Axum%20+%20Next.js-ff006e?style=flat)
+
 <!-- [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](link-to-build-status) -->
+
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 ---
 
 ## 🚀 Overview
+
 This project provides a secure authentication service using Google OAuth, allowing users to manage their profiles
 
 ---
@@ -16,28 +19,23 @@ This project provides a secure authentication service using Google OAuth, allowi
 
 List the key features of your application. Use bullet points for readability.
 
-* Google OAuth 2.0 Integration
-* User session management
-* Secure sign-in and sign-out
-* User profile retrieval (name, email, avatar)
-* CORS support for frontend integration
+- Google OAuth 2.0 Integration
+- User session management
+- Secure sign-in and sign-out
+- User profile retrieval (name, email, avatar)
+- CORS support for frontend integration
 
 ---
 
-## 🛠️ Tech Stack
+## 🛠️ Technologies Used
 
-**Backend**:
-- Rust
-- Axum
-- OAuth2 
-- Tokio 
+This project leverages a modern tech stack to provide a fast and secure experience:
 
-**Frontend**:
-- Next.js 
-- TypeScript
-- TailwindCSS
-- React Icons
-- Shadcn UI
+- **Backend:** Rust (Axum framework)
+- **Frontend:** Next.js (React)
+- **Authentication:** Google OAuth 2.0
+- **Session Management:** `DashMap` (in-memory for demonstration purposes)
+- **Dependency Management:** Cargo (Rust), npm/yarn (Node.js)
 
 ---
 
@@ -47,9 +45,9 @@ Provide clear, step-by-step instructions on how to get your project up and runni
 
 ### Prerequisites
 
-* Rust & Cargo
-* Node.js & npm/yarn (for the frontend)
-* Google Cloud Project with OAuth 2.0 credentials (Client ID, Client Secret)
+- Rust & Cargo
+- Node.js & npm/yarn (for the frontend)
+- Google Cloud Project with OAuth 2.0 credentials (Client ID, Client Secret)
 
 ### 🚀Backend Setup
 
@@ -64,7 +62,7 @@ Provide clear, step-by-step instructions on how to get your project up and runni
     GOOGLE_CLIENT_SECRET=YOUR_GOOGLE_CLIENT_SECRET
     REDIRECT_URL=http://localhost:8080/auth/google/callback
     ```
-    *Replace `YOUR_GOOGLE_CLIENT_ID` and `YOUR_GOOGLE_CLIENT_SECRET` with your actual Google OAuth credentials.*
+    _Replace `YOUR_GOOGLE_CLIENT_ID` and `YOUR_GOOGLE_CLIENT_SECRET` with your actual Google OAuth credentials._
 3.  **Run the backend:**
     ```bash
     cargo run
@@ -90,34 +88,37 @@ Provide clear, step-by-step instructions on how to get your project up and runni
 ---
 
 ### 🔧 Environment Variables
+
 - backend/.env
+
 ```bash
 GOOGLE_CLIENT_ID=ClientIDHere.apps.googleusercontent.com
 GOOGLE_CLIENT_SECRET=SecretKeyHere
 AUTH_URL=http://localhost:3000/auth/google
-TOKEN_URL=http://localhost:3000/auth/google/callback 
+TOKEN_URL=http://localhost:3000/auth/google/callback
 # PORT=3000 //example port for the backend server
 ```
 
 ---
 
 ### 🌐 Endpoints
-| Route                   | Method | Description                                                |
-| :---------------------- | :----- | :--------------------------------------------------------- |
-| `/auth/google`          | `GET`  | Initiates the Google OAuth authentication flow.            |
-| `/auth/google/callback` | `GET`  | Handles the OAuth callback from Google, setting the user session. |
-| `/auth/signout`         | `GET`  | Destroys the current user session and logs out.            |
+
+| Route                   | Method | Description                                                                              |
+| :---------------------- | :----- | :--------------------------------------------------------------------------------------- |
+| `/auth/google`          | `GET`  | Initiates the Google OAuth authentication flow.                                          |
+| `/auth/google/callback` | `GET`  | Handles the OAuth callback from Google, setting the user session.                        |
+| `/auth/signout`         | `GET`  | Destroys the current user session and logs out.                                          |
 | `/api/user`             | `GET`  | Retrieves information about the currently authenticated user (requires a valid session). |
 
 ---
 
 ## 🚧 Future Improvements
 
-* **Persistent Sessions:** Implement database integration (e.g., PostgreSQL, Redis) for durable user sessions instead of in-memory `DashMap`.
-* **User Profile Editing:** Add endpoints and frontend functionality for users to update their skills, bio, etc.
-* **Error Handling:** Enhance error handling and provide more specific error messages to the client.
-* **Live Chat Integration:** Implement real-time chat functionality for user communication or support.
-* **Testing:** Add unit and integration tests for both backend and frontend.
+- **Persistent Sessions:** Implement database integration (e.g., PostgreSQL, Redis) for durable user sessions instead of in-memory `DashMap`.
+- **User Profile Editing:** Add endpoints and frontend functionality for users to update their skills, bio, etc.
+- **Error Handling:** Enhance error handling and provide more specific error messages to the client.
+- **Live Chat Integration:** Implement real-time chat functionality for user communication or support.
+- **Testing:** Add unit and integration tests for both backend and frontend.
 
 ---
 

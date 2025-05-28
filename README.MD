@@ -53,7 +53,7 @@ Provide clear, step-by-step instructions on how to get your project up and runni
 
 1.  **Clone the repository:**
     ```bash
-    git clone [https://github.com/your-username/your-repo.git](https://github.com/your-username/your-repo.git)
+    git clone https://github.com/RafaelPil/axum-nextjs-auth.git
     cd your-repo/backend-directory # Adjust if your backend is in a subfolder
     ```
 2.  **Create a `.env` file:**
@@ -97,6 +97,7 @@ GOOGLE_CLIENT_SECRET=SecretKeyHere
 AUTH_URL=http://localhost:3000/auth/google
 TOKEN_URL=http://localhost:3000/auth/google/callback
 # PORT=3000 //example port for the backend server
+JWT_SECRET=SecretKey
 ```
 
 ---

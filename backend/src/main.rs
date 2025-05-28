@@ -1,5 +1,5 @@
 use axum::{
-    extract::{Query, State},
+    extract::{FromRequestParts, Query, State},
     http::{header, HeaderMap, HeaderValue, Method, StatusCode},
     response::{IntoResponse, Json, Redirect, Response},
     routing::get,
@@ -14,9 +14,13 @@ use oauth2::{
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::{fmt, sync::Arc};
-use dashmap::DashMap;
+// use dashmap::DashMap; // No longer strictly needed for core auth, but can be used for other session data
 use tower_http::cors::CorsLayer;
-use time::OffsetDateTime;
+use time::{OffsetDateTime, Duration};
+
+// --- JWT RELATED IMPORTS ---
+use jsonwebtoken::{encode, decode, Header, EncodingKey, DecodingKey, Validation};
+// --- END JWT RELATED IMPORTS ---
 
 #[derive(Debug, Deserialize)]
 struct AuthRequest {
@@ -32,23 +36,45 @@ struct GoogleUserInfo {
     picture: Option<String>,
 }
 
-// Struct to store user session data
+// --- JWT Claims Struct ---
 #[derive(Debug, Clone, Deserialize, Serialize)]
-struct UserSession {
-    id: String,
+struct Claims {
+    sub: String, // Subject (user ID from Google)
     email: String,
     name: String,
     avatar: Option<String>,
-    // skills: Vec<String>,
-    // bio: String,
+    exp: i64, // Expiration time (unix timestamp)
+    iat: i64, // Issued at (unix timestamp)
 }
+
+impl From<GoogleUserInfo> for Claims {
+    fn from(info: GoogleUserInfo) -> Self {
+        let now = OffsetDateTime::now_utc();
+        let exp = (now + Duration::hours(1)).unix_timestamp(); // Token valid for 1 hour
+        let iat = now.unix_timestamp();
+
+        Claims {
+            sub: info.sub,
+            email: info.email,
+            name: info.name,
+            avatar: info.picture,
+            exp,
+            iat,
+        }
+    }
+}
+// --- END JWT Claims Struct ---
+
 
 #[derive(Debug)]
 enum AuthError {
     OAuth2(String),
     Reqwest(String),
     CookieParse(String),
-    Unauthorized(String), 
+    Unauthorized(String),
+    #[allow(dead_code)] // Might not always be used if not decoding
+    JwtError(String),
+    MissingCookie(String),
 }
 
 impl fmt::Display for AuthError {
@@ -58,6 +84,8 @@ impl fmt::Display for AuthError {
             AuthError::Reqwest(e) => write!(f, "Reqwest error: {}", e),
             AuthError::CookieParse(e) => write!(f, "Cookie parse error: {}", e),
             AuthError::Unauthorized(e) => write!(f, "Unauthorized: {}", e),
+            AuthError::JwtError(e) => write!(f, "JWT error: {}", e),
+            AuthError::MissingCookie(e) => write!(f, "Missing cookie: {}", e),
         }
     }
 }
@@ -65,7 +93,7 @@ impl fmt::Display for AuthError {
 impl IntoResponse for AuthError {
     fn into_response(self) -> Response {
         let status = match self {
-            AuthError::Unauthorized(_) => StatusCode::UNAUTHORIZED,
+            AuthError::Unauthorized(_) | AuthError::MissingCookie(_) => StatusCode::UNAUTHORIZED,
             _ => StatusCode::INTERNAL_SERVER_ERROR,
         };
         let body = json!({ "error": self.to_string() });
@@ -76,12 +104,13 @@ impl IntoResponse for AuthError {
 // Application state to be shared across handlers
 struct AppState {
     oauth_client: BasicClient,
-    user_sessions: DashMap<String, UserSession>, 
+    jwt_secret: String, // Store JWT secret here
+    // user_sessions: DashMap<String, UserSession>, // No longer strictly needed for primary auth
 }
 
 #[tokio::main]
 async fn main() {
-    // dotenv().expect("Failed to load .env file");
+    dotenv().ok(); // Load .env file
 
     tracing_subscriber::fmt()
         .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
@@ -93,6 +122,8 @@ async fn main() {
         .expect("GOOGLE_CLIENT_SECRET must be set");
     let redirect_url = dotenv::var("REDIRECT_URL")
         .unwrap_or_else(|_| "https://axum-nextjs-auth-rafaelpil1192-xb4xdm2b.leapcell.dev/auth/google/callback".to_string());
+    let jwt_secret = dotenv::var("JWT_SECRET")
+        .expect("JWT_SECRET must be set");
 
     let client = BasicClient::new(
         ClientId::new(google_client_id),
@@ -105,7 +136,8 @@ async fn main() {
     // Initialize the shared application state
     let app_state = Arc::new(AppState {
         oauth_client: client,
-        user_sessions: DashMap::new(),
+        jwt_secret,
+        // user_sessions: DashMap::new(), // Not used for primary auth with JWT
     });
 
     let frontend_url = dotenv::var("FRONTEND_URL")
@@ -132,7 +164,6 @@ async fn main() {
         .layer(cors)
         .with_state(app_state);
 
-    // --- MODIFICATION HERE ---
     let port = dotenv::var("PORT")
         .unwrap_or_else(|_| "8080".to_string())
         .parse::<u16>()
@@ -145,7 +176,7 @@ async fn main() {
 
 async fn home() -> Json<serde_json::Value> {
     Json(json!({
-        "message": "Welcome to the Auth API",
+        "message": "Welcome to the Auth API (JWT Version)",
         "endpoints": {
             "login": "/auth/google",
             "protected": "/protected",
@@ -156,36 +187,38 @@ async fn home() -> Json<serde_json::Value> {
 }
 
 async fn login_with_google(
-    State(app_state): State<Arc<AppState>>, // Use AppState
+    State(app_state): State<Arc<AppState>>,
 ) -> Result<Redirect, AuthError> {
-    let (auth_url, csrf_token) = app_state.oauth_client // Access client from app_state
+    let (auth_url, _csrf_token) = app_state.oauth_client
         .authorize_url(CsrfToken::new_random)
         .add_scope(Scope::new("email".to_string()))
         .add_scope(Scope::new("profile".to_string()))
         .add_scope(Scope::new("openid".to_string()))
         .url();
 
-    tracing::debug!("Generated CSRF token: {}", csrf_token.secret());
+    // In a real application, you'd store csrf_token in a cookie or session to validate later.
+    // For this example, we're skipping CSRF token validation to focus on JWTs.
+    tracing::debug!("Generated Auth URL: {}", auth_url);
     Ok(Redirect::to(auth_url.as_str()))
 }
 
 async fn google_oauth_callback(
-    State(app_state): State<Arc<AppState>>, // Use AppState
+    State(app_state): State<Arc<AppState>>,
     Query(query): Query<AuthRequest>,
 ) -> Result<impl IntoResponse, AuthError> {
     tracing::debug!("Received state: {}", query.state);
 
     let code = AuthorizationCode::new(query.code);
-    let token_response = app_state.oauth_client // Access client from app_state
+    let token_response = app_state.oauth_client
         .exchange_code(code)
         .request_async(async_http_client)
         .await
         .map_err(|e| AuthError::OAuth2(e.to_string()))?;
 
-    let access_token = token_response.access_token().secret();
+    let access_token_google = token_response.access_token().secret();
     let user_info: GoogleUserInfo = reqwest::Client::new()
         .get("https://www.googleapis.com/oauth2/v3/userinfo")
-        .bearer_auth(access_token)
+        .bearer_auth(access_token_google)
         .send()
         .await
         .map_err(|e| AuthError::Reqwest(e.to_string()))?
@@ -193,25 +226,26 @@ async fn google_oauth_callback(
         .await
         .map_err(|e| AuthError::Reqwest(e.to_string()))?;
 
-    // Create a UserSession from the fetched info
-    let user_session = UserSession {
-        id: user_info.sub.clone(),
-        email: user_info.email.clone(),
-        name: user_info.name.clone(),
-        avatar: user_info.picture.clone(),
-        // skills: vec![], // Initialize with defaults or fetch from DB
-        // bio: "Cyber security enthusiast".to_string(),
-    };
+    // --- Create JWT Claims from user_info ---
+    let claims = Claims::from(user_info);
+    tracing::info!("Generated claims for user: {}", claims.sub);
 
-    // Store the user session in the DashMap
-    app_state.user_sessions.insert(user_info.sub.clone(), user_session.clone());
-    tracing::info!("Stored user session for user_id: {}", user_info.sub);
+    // --- Encode JWT ---
+    let token = encode(
+        &Header::default(),
+        &claims,
+        &EncodingKey::from_secret(app_state.jwt_secret.as_bytes())
+    )
+    .map_err(|e| AuthError::JwtError(e.to_string()))?;
+    tracing::info!("Generated JWT for user: {}", claims.sub);
 
-    let cookie = Cookie::build(("user_id", user_info.sub.clone()))
+    // --- Set JWT as an HttpOnly cookie ---
+    let cookie = Cookie::build(("access_token", token)) // Renamed from user_id for clarity
         .path("/")
         .same_site(SameSite::Lax)
         .http_only(true)
         .secure(true) // Set to true in production with HTTPS
+        .expires(OffsetDateTime::from_unix_timestamp(claims.exp).unwrap_or(OffsetDateTime::now_utc() + Duration::hours(1)))
         .build();
 
     let mut headers = HeaderMap::new();
@@ -221,38 +255,53 @@ async fn google_oauth_callback(
             .map_err(|e| AuthError::CookieParse(e.to_string()))?,
     );
 
-    Ok((headers, Redirect::to("https://cyberprofile.vercel.app")))
+    Ok((headers, Redirect::to("https://cyberprofile.vercel.app/portfolio"))) // Redirect to portfolio
 }
 
+// --- Custom Extractor for JWT Authentication ---
+#[derive(Debug, Clone)]
+pub struct AuthClaims(Claims); // Wrap Claims in a newtype to implement FromRequestParts
+
+#[async_trait::async_trait]
+impl FromRequestParts<Arc<AppState>> for AuthClaims {
+    type Rejection = AuthError;
+
+    async fn from_request_parts(parts: &mut http::request::Parts, state: &Arc<AppState>) -> Result<Self, Self::Rejection> {
+        let cookies_header = parts.headers.get(header::COOKIE)
+            .and_then(|h| h.to_str().ok())
+            .ok_or(AuthError::MissingCookie("No cookie header found".to_string()))?;
+
+        let cookie = Cookie::parse(cookies_header)
+            .map_err(|e| AuthError::CookieParse(e.to_string()))?;
+
+        let jwt_cookie = cookie.get("access_token") // Look for the 'access_token' cookie
+            .ok_or(AuthError::MissingCookie("Access token cookie not found".to_string()))?;
+
+        let token_data = decode::<Claims>(
+            jwt_cookie.value(),
+            &DecodingKey::from_secret(state.jwt_secret.as_bytes()),
+            &Validation::default()
+        )
+        .map_err(|e| AuthError::JwtError(format!("JWT validation failed: {}", e)))?;
+
+        tracing::debug!("Successfully authenticated user: {}", token_data.claims.sub);
+        Ok(AuthClaims(token_data.claims))
+    }
+}
+// --- END Custom Extractor ---
+
+
 async fn sign_out(
-    State(app_state): State<Arc<AppState>>, // Use AppState
+    _state: State<Arc<AppState>>, // State is not strictly needed for sign out with JWT
     headers: HeaderMap,
 ) -> impl IntoResponse {
-    let cookies = headers
-        .get_all(header::COOKIE)
-        .iter()
-        .filter_map(|c| c.to_str().ok())
-        .collect::<Vec<_>>()
-        .join("; ");
-
-    // Attempt to get user_id from cookie to remove from session map
-    let user_id_option = cookies
-        .split(';')
-        .find(|c| c.trim().starts_with("user_id="))
-        .and_then(|c| c.split('=').nth(1));
-
-    if let Some(user_id) = user_id_option {
-        app_state.user_sessions.remove(user_id);
-        tracing::info!("Removed user session for user_id: {}", user_id);
-    }
-
-    // Create an expired cookie to remove the session
-    let cookie = Cookie::build(("user_id", ""))
+    // Create an expired cookie to remove the session JWT
+    let cookie = Cookie::build(("access_token", "")) // Target the 'access_token' cookie
         .path("/")
         .same_site(SameSite::Lax)
         .http_only(true)
         .secure(true)
-        .expires(OffsetDateTime::now_utc() - time::Duration::days(1))
+        .expires(OffsetDateTime::now_utc() - Duration::days(1)) // Expire immediately
         .build();
 
     let mut headers = HeaderMap::new();
@@ -261,54 +310,29 @@ async fn sign_out(
         HeaderValue::from_str(&cookie.to_string()).unwrap(),
     );
 
-    (headers, Json(json!({"status": "signed_out"})))
+    (headers, Json(json!({"status": "signed_out", "message": "JWT invalidated"})))
 }
 
-async fn protected() -> Json<serde_json::Value> {
+async fn protected(AuthClaims(claims): AuthClaims) -> Json<serde_json::Value> {
+    // If we reach here, the JWT was valid and claims are available
     Json(json!({
         "status": "authenticated",
-        "message": "You have accessed a protected route"
+        "message": format!("Welcome, {}! You have accessed a protected route.", claims.name)
     }))
 }
 
 async fn get_current_user(
-    State(app_state): State<Arc<AppState>>, // Use AppState
-    headers: HeaderMap,
+    AuthClaims(claims): AuthClaims, // Extract Claims directly
 ) -> Result<Json<serde_json::Value>, AuthError> {
-    let cookies = headers
-        .get_all(header::COOKIE)
-        .iter()
-        .filter_map(|c| c.to_str().ok())
-        .collect::<Vec<_>>()
-        .join("; ");
-
-    if cookies.is_empty() {
-        return Err(AuthError::Unauthorized("No cookies found".to_string()));
-    }
-
-    let user_id = cookies
-        .split(';')
-        .find(|c| c.trim().starts_with("user_id="))
-        .and_then(|c| c.split('=').nth(1))
-        .ok_or(AuthError::Unauthorized("user_id cookie not found".to_string()))?
-        .to_string(); // Convert &str to String for lookup
-
-    // Retrieve the user session from the DashMap
-    if let Some(user_session) = app_state.user_sessions.get(&user_id) {
-        Ok(Json(json!({
-            "user": {
-                "id": user_session.id,
-                "name": user_session.name,
-                "email": user_session.email,
-                "avatar": user_session.avatar,
-                // Add default skills and bio if not stored in UserSession
-                "skills": ["Cybersecurity", "Networking", "Linux"], // Example defaults
-                "bio": "Cyber security enthusiast with a passion for digital forensics and ethical hacking." // Example default
-            }
-        })))
-    } else {
-        // If user_id cookie is present but session not found (e.g., server restart),
-        // return a 401 Unauthorized status.
-        Err(AuthError::Unauthorized("User session not found or expired".to_string()))
-    }
+    // The user's information is directly available from the validated JWT claims
+    Ok(Json(json!({
+        "user": {
+            "id": claims.sub,
+            "name": claims.name,
+            "email": claims.email,
+            "avatar": claims.avatar,
+            "skills": ["Cybersecurity", "Networking", "Linux", "Rust", "Next.js"], // Example defaults
+            "bio": "Cyber security enthusiast with a passion for digital forensics and ethical hacking." // Example default
+        }
+    })))
 }

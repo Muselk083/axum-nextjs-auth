@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Rusty",
+  title: "Cyber Portfolio",
   description: "Next.js + Rust OAuth",
 };
 

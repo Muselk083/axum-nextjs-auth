@@ -92,7 +92,7 @@ async fn main() {
     let google_client_secret = dotenv::var("GOOGLE_CLIENT_SECRET")
         .expect("GOOGLE_CLIENT_SECRET must be set");
     let redirect_url = dotenv::var("REDIRECT_URL")
-        .unwrap_or_else(|_| "http://localhost:8080/auth/google/callback".to_string());
+        .unwrap_or_else(|_| "https://axum-nextjs-auth-rafaelpil1192-xb4xdm2b.leapcell.dev/auth/google/callback".to_string());
 
     let client = BasicClient::new(
         ClientId::new(google_client_id),
@@ -109,7 +109,7 @@ async fn main() {
     });
 
     let frontend_url = dotenv::var("FRONTEND_URL")
-        .unwrap_or_else(|_| "http://localhost:3000".to_string());
+        .unwrap_or_else(|_| "https://cyberprofile.vercel.app".to_string());
 
     let cors = CorsLayer::new()
     .allow_origin(frontend_url.parse::<HeaderValue>().unwrap())
@@ -134,7 +134,7 @@ async fn main() {
 
     // --- MODIFICATION HERE ---
     let port = dotenv::var("PORT")
-        .unwrap_or_else(|_| "10000".to_string())
+        .unwrap_or_else(|_| "8080".to_string())
         .parse::<u16>()
         .expect("PORT must be a valid number");
     let addr = format!("0.0.0.0:{}", port);
@@ -221,7 +221,7 @@ async fn google_oauth_callback(
             .map_err(|e| AuthError::CookieParse(e.to_string()))?,
     );
 
-    Ok((headers, Redirect::to("http://localhost:3000/")))
+    Ok((headers, Redirect::to("https://cyberprofile.vercel.app")))
 }
 
 async fn sign_out(

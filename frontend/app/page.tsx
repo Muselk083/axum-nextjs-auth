@@ -30,6 +30,9 @@ export default function Portfolio() {
       try {
         const res = await fetch(`${BACKEND_URL}/api/user`, {
           credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
         });
 
         if (res.status === 401) {
@@ -37,7 +40,10 @@ export default function Portfolio() {
           return;
         }
 
-        if (!res.ok) throw new Error("Failed to fetch user");
+        if (!res.ok) {
+          const errorData = await res.json();
+          throw new Error(errorData.error || "Failed to fetch user");
+        }
 
         const data = await res.json();
         setUser({

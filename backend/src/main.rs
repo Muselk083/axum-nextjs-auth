@@ -146,11 +146,12 @@ async fn main() {
 
     let cors = CorsLayer::new()
     .allow_origin(frontend_url.parse::<HeaderValue>().unwrap())
-    .allow_methods([Method::GET, Method::POST])
+    .allow_methods([Method::GET, Method::POST, Method::OPTIONS])
     .allow_headers([
         header::CONTENT_TYPE,
         header::AUTHORIZATION,
         header::ACCEPT,
+        header::ORIGIN,
     ])
     .allow_credentials(true)
     .expose_headers([header::SET_COOKIE]);
@@ -241,11 +242,12 @@ async fn google_oauth_callback(
     tracing::info!("Generated JWT for user: {}", claims.sub);
 
     // --- Set JWT as an HttpOnly cookie ---
-    let cookie = Cookie::build(("access_token", token)) // Renamed from user_id for clarity
+    let cookie = Cookie::build(("access_token", token))
         .path("/")
+        .domain("cyberprofile.vercel.app") // Set your frontend domain here
         .same_site(SameSite::Lax)
         .http_only(true)
-        .secure(true) // Set to true in production with HTTPS
+        .secure(true) // Must be true in production
         .expires(OffsetDateTime::from_unix_timestamp(claims.exp).unwrap_or(OffsetDateTime::now_utc() + Duration::hours(1)))
         .build();
 

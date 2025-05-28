@@ -71,8 +71,9 @@ enum AuthError {
     OAuth2(String),
     Reqwest(String),
     CookieParse(String),
+    #[allow(dead_code)]
     Unauthorized(String),
-    #[allow(dead_code)] // Might not always be used if not decoding
+    #[allow(dead_code)]
     JwtError(String),
     MissingCookie(String),
 }
@@ -255,7 +256,7 @@ async fn google_oauth_callback(
             .map_err(|e| AuthError::CookieParse(e.to_string()))?,
     );
 
-    Ok((headers, Redirect::to("https://cyberprofile.vercel.app/portfolio"))) // Redirect to portfolio
+    Ok((headers, Redirect::to("https://cyberprofile.vercel.app")))
 }
 
 // --- Custom Extractor for JWT Authentication ---
@@ -271,14 +272,17 @@ impl FromRequestParts<Arc<AppState>> for AuthClaims {
             .and_then(|h| h.to_str().ok())
             .ok_or(AuthError::MissingCookie("No cookie header found".to_string()))?;
 
-        let cookie = Cookie::parse(cookies_header)
-            .map_err(|e| AuthError::CookieParse(e.to_string()))?;
-
-        let jwt_cookie = cookie.get("access_token") // Look for the 'access_token' cookie
+        // Note: Cookie::parse can return multiple cookies if the header contains a list
+        // You might need a more robust way to find a specific cookie in a multi-cookie header.
+        // For simplicity, we assume the access_token cookie is directly available if present.
+        let cookies = cookies_header.split(';').map(|s| s.trim()).collect::<Vec<&str>>();
+        let jwt_cookie_value = cookies.iter()
+            .find(|&s| s.starts_with("access_token="))
+            .and_then(|s| s.strip_prefix("access_token="))
             .ok_or(AuthError::MissingCookie("Access token cookie not found".to_string()))?;
 
         let token_data = decode::<Claims>(
-            jwt_cookie.value(),
+            jwt_cookie_value, // Use the extracted value directly
             &DecodingKey::from_secret(state.jwt_secret.as_bytes()),
             &Validation::default()
         )
@@ -292,8 +296,7 @@ impl FromRequestParts<Arc<AppState>> for AuthClaims {
 
 
 async fn sign_out(
-    _state: State<Arc<AppState>>, // State is not strictly needed for sign out with JWT
-    headers: HeaderMap,
+    _state: State<Arc<AppState>>,
 ) -> impl IntoResponse {
     // Create an expired cookie to remove the session JWT
     let cookie = Cookie::build(("access_token", "")) // Target the 'access_token' cookie

